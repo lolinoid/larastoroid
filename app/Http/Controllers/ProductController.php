@@ -6,6 +6,7 @@ use App\Category;
 use App\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use File;
 
 class ProductController extends Controller
 {
@@ -39,7 +40,7 @@ class ProductController extends Controller
         return view('products.create', compact('category'));
     }
 
-    public function store($request)
+    public function store(Request $request)
     {
         // validasi request nya
         $this->validate($request, [
@@ -76,5 +77,22 @@ class ProductController extends Controller
             // jika sudah maka redirrect ke list produk
             return redirect(route('product.index'))->with(['success' => 'Produk baru ditambahkan']);
         }
+    }
+
+    public function destroy($id)
+    {
+        $product = Product::find($id); //QUERY UNTUK MENGAMBIL DATA PRODUK BERDASARKAN ID
+        //HAPUS FILE IMAGE DARI STORAGE PATH DIIKUTI DENGNA NAMA IMAGE YANG DIAMBIL DARI DATABASE
+        File::delete(storage_path('app/public/products/' . $product->image));
+        //KEMUDIAN HAPUS DATA PRODUK DARI DATABASE
+        $product->delete();
+        //DAN REDIRECT KE HALAMAN LIST PRODUK
+        return redirect(route('product.index'))->with(['success' => 'Produk Sudah Dihapus']);
+    }
+
+    public function massUploadForm()
+    {
+        $category = Category::orderBy('name', 'DESC')->get();
+        return view('products.bulk', compact('category'));
     }
 }
